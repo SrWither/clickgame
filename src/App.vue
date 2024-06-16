@@ -257,6 +257,7 @@ let timeDisplayInterval: any = null
 onMounted(() => {
   createRain()
   window.addEventListener('resize', handleResize)
+  checkWindowSize()
 })
 
 onUnmounted(() => {
