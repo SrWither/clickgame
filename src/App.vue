@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, computed, onMounted } from 'vue'
 import Modal from '@/components/CModal.vue'
 import Button from '@/components/CButton.vue'
 import WinModal from '@/components/CWinModal.vue'
@@ -15,7 +15,9 @@ const isRain = ref(false)
 const isParty = ref(false)
 const winKey = 'Felicidades ganaste, envíame una foto de esto'
 
-const partyClass = ref('')
+const partyClass = computed(() => {
+  return isParty.value ? 'dance' : ''
+})
 
 // Sounds
 const music = [
@@ -91,6 +93,20 @@ const handleButtonClick = () => {
 }
 
 // Rain
+const createRain = () => {
+  if (container.value) {
+    for (let i = 0; i < 80; i++) {
+      let gout = document.createElement('i')
+      gout.classList.add('gout', 'lightgout')
+      gout.style.left = `${Math.random() * innerWidth}px`
+      gout.style.animationDuration = `${Math.random() * 0.6 + 0.4}s`
+      gout.style.animationDelay = `${Math.random()}s`
+      container.value.appendChild(gout)
+    }
+    container.value.style.display = 'none'
+  }
+}
+
 const toggleRain = () => {
   if (container.value && btn.value) {
     container.value.style.display = isRain.value ? 'none' : 'block'
@@ -135,6 +151,23 @@ const rainColor = () => {
   document.querySelectorAll('.gout').forEach((gout) => {
     gout.classList.toggle('lightgout', document.body.style.backgroundColor !== 'black')
   })
+}
+
+// Freeze
+const freezeCursor = () => {
+  const freezeOverlay = document.createElement('div')
+  freezeOverlay.style.position = 'fixed'
+  freezeOverlay.style.top = '0'
+  freezeOverlay.style.left = '0'
+  freezeOverlay.style.width = '100vw'
+  freezeOverlay.style.height = '100vh'
+  freezeOverlay.style.cursor = 'none'
+  freezeOverlay.style.zIndex = '9999'
+  document.body.appendChild(freezeOverlay)
+
+  setTimeout(() => {
+    document.body.removeChild(freezeOverlay)
+  }, 5000)
 }
 
 // day and night
@@ -206,6 +239,10 @@ const getRandomPhrase = () => {
 // Actualización en tiempo real del tiempo
 let timeDisplayInterval: any = null
 
+onMounted(() => {
+  createRain()
+})
+
 onUnmounted(() => {
   clearInterval(timeDisplayInterval)
 })
@@ -228,6 +265,7 @@ const formatTime = (millis: number): string => {
       @night="handleNight"
       @party="handleParty"
       @endparty="handleEndParty"
+      @freeze="freezeCursor"
       ref="btn"
       :class="partyClass"
     />
