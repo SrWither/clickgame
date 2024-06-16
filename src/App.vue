@@ -9,6 +9,7 @@ const showWinModal = ref(false)
 const btn = ref<HTMLButtonElement | null>(null)
 const isMobile = ref<boolean>(window.matchMedia('(pointer: coarse)').matches)
 const container = ref<HTMLButtonElement | null>(null)
+const isCursorOnButton = ref<boolean>(false)
 
 const isNight = ref(false)
 const isRain = ref(false)
@@ -81,13 +82,15 @@ const closeWinModal = () => {
 }
 
 const handleButtonClick = () => {
-  if (!isMobile.value) {
-    const randomPhrase = getRandomPhrase()
-    if (randomPhrase === winKey) {
-      stopTimer()
-      showWinModal.value = true
-    } else {
-      alert(randomPhrase)
+  if (isCursorOnButton.value) {
+    if (!isMobile.value) {
+      const randomPhrase = getRandomPhrase()
+      if (randomPhrase === winKey) {
+        stopTimer()
+        showWinModal.value = true
+      } else {
+        alert(randomPhrase)
+      }
     }
   }
 }
@@ -266,6 +269,8 @@ const formatTime = (millis: number): string => {
       @party="handleParty"
       @endparty="handleEndParty"
       @freeze="freezeCursor"
+      @mouseenter="isCursorOnButton = true"
+      @mouseleave="isCursorOnButton = false"
       ref="btn"
       :class="partyClass"
     />
