@@ -81,8 +81,20 @@ const closeWinModal = () => {
   showWinModal.value = false
 }
 
+const MIN_WIDTH = 800
+const MIN_HEIGHT = 600
+const isWindowTooSmall = ref(false)
+
+const checkWindowSize = () => {
+  isWindowTooSmall.value = window.innerWidth < MIN_WIDTH || window.innerHeight < MIN_HEIGHT
+}
+
+const handleResize = () => {
+  checkWindowSize()
+}
+
 const handleButtonClick = () => {
-  if (isCursorOnButton.value) {
+  if (isCursorOnButton.value && !isWindowTooSmall.value) {
     if (!isMobile.value) {
       const randomPhrase = getRandomPhrase()
       if (randomPhrase === winKey) {
@@ -244,6 +256,7 @@ let timeDisplayInterval: any = null
 
 onMounted(() => {
   createRain()
+  window.addEventListener('resize', handleResize)
 })
 
 onUnmounted(() => {
