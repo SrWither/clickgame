@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import Modal from '@/components/CModal.vue'
 import Button from '@/components/CButton.vue'
-import { onMounted, computed } from 'vue'
+import WinModal from '@/components/CWinModal.vue'
 
 const showModal = ref(true)
+const showWinModal = ref(false)
 const btn = ref<HTMLButtonElement | null>(null)
 const isMobile = ref<boolean>(window.matchMedia('(pointer: coarse)').matches)
 const container = ref<HTMLButtonElement | null>(null)
@@ -12,10 +13,9 @@ const container = ref<HTMLButtonElement | null>(null)
 const isNight = ref(false)
 const isRain = ref(false)
 const isParty = ref(false)
+const winKey = 'Felicidades ganaste, envíame una foto de esto'
 
-const partyClass = computed(() => {
-  return isParty.value ? 'dance' : ''
-})
+const partyClass = ref('')
 
 // Sounds
 const music = [
@@ -49,32 +49,48 @@ const selectThunder = () => {
   thunderAudio = new Audio(thunder)
 }
 
+const startTime = ref<number>(0)
+const elapsedTime = ref<number>(0)
+let timerInterval: any = null
+
+const startTimer = () => {
+  startTime.value = Date.now() - elapsedTime.value
+  timerInterval = setInterval(() => {
+    elapsedTime.value = Date.now() - startTime.value
+  }, 10)
+}
+
+const stopTimer = () => {
+  clearInterval(timerInterval)
+}
+
 const closeModal = () => {
   showModal.value = false
+  startTimer()
+  timeDisplayInterval = setInterval(() => {
+    if (btn.value) {
+      btn.value.textContent = formatTime(elapsedTime.value)
+    }
+  }, 100)
+}
+
+const closeWinModal = () => {
+  showWinModal.value = false
 }
 
 const handleButtonClick = () => {
   if (!isMobile.value) {
     const randomPhrase = getRandomPhrase()
-    alert(randomPhrase)
+    if (randomPhrase === winKey) {
+      stopTimer()
+      showWinModal.value = true
+    } else {
+      alert(randomPhrase)
+    }
   }
 }
 
 // Rain
-const createRain = () => {
-  if (container.value) {
-    for (let i = 0; i < 80; i++) {
-      let gout = document.createElement('i')
-      gout.classList.add('gout', 'lightgout')
-      gout.style.left = `${Math.random() * innerWidth}px`
-      gout.style.animationDuration = `${Math.random() * 0.6 + 0.4}s`
-      gout.style.animationDelay = `${Math.random()}s`
-      container.value.appendChild(gout)
-    }
-    container.value.style.display = 'none'
-  }
-}
-
 const toggleRain = () => {
   if (container.value && btn.value) {
     container.value.style.display = isRain.value ? 'none' : 'block'
@@ -119,27 +135,6 @@ const rainColor = () => {
   document.querySelectorAll('.gout').forEach((gout) => {
     gout.classList.toggle('lightgout', document.body.style.backgroundColor !== 'black')
   })
-}
-
-onMounted(() => {
-  createRain()
-})
-
-// Freeze
-const freezeCursor = () => {
-  const freezeOverlay = document.createElement('div')
-  freezeOverlay.style.position = 'fixed'
-  freezeOverlay.style.top = '0'
-  freezeOverlay.style.left = '0'
-  freezeOverlay.style.width = '100vw'
-  freezeOverlay.style.height = '100vh'
-  freezeOverlay.style.cursor = 'none'
-  freezeOverlay.style.zIndex = '9999'
-  document.body.appendChild(freezeOverlay)
-
-  setTimeout(() => {
-    document.body.removeChild(freezeOverlay)
-  }, 5000)
 }
 
 // day and night
@@ -207,14 +202,27 @@ const phrases: string[] = [
 const getRandomPhrase = () => {
   return phrases[Math.floor(Math.random() * phrases.length)]
 }
+
+// Actualización en tiempo real del tiempo
+let timeDisplayInterval: any = null
+
+onUnmounted(() => {
+  clearInterval(timeDisplayInterval)
+})
+
+const formatTime = (millis: number): string => {
+  let minutes = Math.floor(millis / 60000)
+  let seconds = ((millis % 60000) / 1000).toFixed(0)
+  return `${minutes}:${Number(seconds) < 10 ? '0' : ''}${seconds}`
+}
 </script>
 
 <template>
   <div id="app">
     <Modal v-if="showModal" @close="closeModal" />
+    <WinModal v-if="showWinModal" :time="elapsedTime" @close="closeWinModal" />
     <Button
       @click="handleButtonClick"
-      @freeze="freezeCursor"
       @rain="toggleRain"
       @day="handleDay"
       @night="handleNight"
@@ -226,5 +234,18 @@ const getRandomPhrase = () => {
     <div id="container" ref="container">
       <div id="vapour"></div>
     </div>
+    <div id="time-display" class="bg-black text-white p-1 rounded-lg">
+      {{ formatTime(elapsedTime) }}
+    </div>
   </div>
 </template>
+
+<style scoped>
+#time-display {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  font-size: 18px;
+  color: white;
+}
+</style>
