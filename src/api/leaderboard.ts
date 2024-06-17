@@ -1,4 +1,5 @@
 import axios from 'axios'
+// @ts-ignore
 import argon2 from 'argon2-browser/dist/argon2-bundled.min.js'
 
 const API_BASE_URL = 'https://96fjwjhkqd.execute-api.us-east-2.amazonaws.com/dev'
