@@ -16,8 +16,8 @@ const handleMouseOver = () => {
   if (btn.value) {
     const windowWidth = window.innerWidth - btn.value.offsetWidth
     const windowHeight = window.innerHeight - btn.value.offsetHeight
-    // btn.value.style.left = `${Math.floor(Math.random() * windowWidth)}px`
-    // btn.value.style.top = `${Math.floor(Math.random() * windowHeight)}px`
+    btn.value.style.left = `${Math.floor(Math.random() * windowWidth)}px`
+    btn.value.style.top = `${Math.floor(Math.random() * windowHeight)}px`
     updateButton()
   }
 }
