@@ -1,5 +1,5 @@
 import axios from 'axios'
-import argon2 from 'argon2-browser'
+import argon2 from 'argon2-browser/dist/argon2-bundled.min.js'
 
 const API_BASE_URL = 'https://96fjwjhkqd.execute-api.us-east-2.amazonaws.com/dev'
 
@@ -11,10 +11,10 @@ export interface Leader {
 }
 
 // Función para generar el token HMAC
-const generateHmacToken = async (bodyData: any): Promise<string> => {
+export const generateHmacToken = async (bodyData: any): Promise<string> => {
   const data = JSON.stringify(bodyData)
   const hash = await argon2.hash({ pass: data, salt: 'thistnowebassembly' })
-  return hash.hashHex
+  return hash.encoded
 }
 
 // Obtener todos los líderes, ordenados por el campo 'time'
