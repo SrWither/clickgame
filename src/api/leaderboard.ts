@@ -1,9 +1,8 @@
 import axios from 'axios'
-import * as crypto from 'crypto'
+import argon2 from 'argon2'
 
 const API_BASE_URL = 'https://96fjwjhkqd.execute-api.us-east-2.amazonaws.com/dev'
 
-const secretKey = 'thisnotwebassembly'
 export interface Leader {
   id: string
   name: string
@@ -12,10 +11,10 @@ export interface Leader {
 }
 
 // Función para generar el token HMAC
-const generateHmacToken = (bodyData: any) => {
-  const hmac = crypto.createHmac('sha256', secretKey)
-  hmac.update(JSON.stringify(bodyData))
-  return hmac.digest('hex')
+const generateHmacToken = async (bodyData: any): Promise<string> => {
+  const data = JSON.stringify(bodyData)
+  const hash = await argon2.hash(data)
+  return hash
 }
 
 // Obtener todos los líderes, ordenados por el campo 'time'
@@ -41,7 +40,7 @@ export const getLeaderById = async (id: string): Promise<Leader> => {
 // Crear un nuevo líder
 export const createLeader = async (leader: Leader): Promise<Leader> => {
   try {
-    const hmacToken = generateHmacToken(leader)
+    const hmacToken = await generateHmacToken(leader)
     const response = await axios.post(`${API_BASE_URL}/leaders`, leader, {
       headers: {
         'Content-Type': 'application/json',
